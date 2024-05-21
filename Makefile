@@ -21,12 +21,12 @@ $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
 
 # 规则：编译 .cpp 文件为 .o 文件
-%.o: %.cpp %.h
+%.o: %.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # 规则：清理生成的文件
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(TARGET) *.gch *.out
 
 # 显示构建内容的详细信息
 .PHONY: all clean

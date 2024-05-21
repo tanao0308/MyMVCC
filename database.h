@@ -1,5 +1,5 @@
-#ifndef MVCC_H
-#define MVCC_H
+#ifndef DATABASE_H
+#define DATABASE_H
 
 #include<iostream>
 #include<list>
@@ -70,6 +70,7 @@ public:
 	void print(Log<Val>* result);
 };
 
-#include "mvcc.cpp"
+// C++模板类的定义和实现通常都需要在头文件中
+#include "database.cpp"
 
 #endif

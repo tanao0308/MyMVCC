@@ -1,11 +1,8 @@
-#ifndef MVCC_CPP
-#define MVCC_CPP
-
 #include<iostream>
 #include<list>
 #include<map>
 #include<set>
-#include "mvcc.h"
+#include "database.h"
 using namespace std;
 
 /*
@@ -211,4 +208,3 @@ void Viewer<Val>::print(Log<Val>* result)
 		result->print();
 }
 
-#endif
