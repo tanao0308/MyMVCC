@@ -1,5 +1,5 @@
 #include<iostream>
-#include "database.h"
+#include "transaction.h"
 
 template<typename Key, typename Val>
 Database<Key, Val>& init()
@@ -25,22 +25,20 @@ Database<Key, Val>& init()
 
 void test_read_uncommitted()
 {
-	int iso = 1;
 	Database<int, string>& db = init<int, string>();
-    Viewer<string> vie;
 
-    int tra1, tra2;
+	Transaction<int, string> tra1(db, 1);
+	Transaction<int, string> tra2(db, 1);
 	
-	tra1 = db.start();
-	db.insert(9, "abc", tra1);
-    vie.print(db.search(9, tra1, iso));
+	tra1.start();
+	tra1.insert(9, "abc");
 
-	tra2 = db.start();
-	vie.print(db.search(9, tra2, iso));
+	tra2.start();
+	tra2.print(tra2.search(9));
 
-	db.commit(tra1);
+	tra1.commit();
 
-	vie.print(db.search(9, tra2, iso));
+	tra2.print(tra2.search(9));
 
 	delete &db;
 }
