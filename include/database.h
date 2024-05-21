@@ -10,7 +10,7 @@ class Database
 {
 private:
 	map<Key, Row<Val> > rows;
-	ReadView tra_set;
+	ReadView viewer;
 
 public:
 	Database();
@@ -34,7 +34,7 @@ Database<Key, Val>::Database() {}
 template<typename Key, typename Val>
 int Database<Key, Val>::start()
 {
-	int tra = tra_set.insert();
+	int tra = viewer.insert();
 	return tra;
 }
 
@@ -42,14 +42,14 @@ int Database<Key, Val>::start()
 template<typename Key, typename Val>
 bool Database<Key, Val>::commit(int tra)
 {
-	return tra_set.remove(tra);
+	return viewer.remove(tra);
 }
 
 // 某个事务插入一条记录
 template<typename Key, typename Val>
 bool Database<Key, Val>::insert(Key key, Val val, int tra)
 {
-	if(!tra_set.exist(tra))
+	if(!viewer.exist(tra))
 		return 1; // 失败返回0
 	Log<Val> log(val, tra);
 	return rows[key].insert(log);
@@ -59,7 +59,7 @@ bool Database<Key, Val>::insert(Key key, Val val, int tra)
 template<typename Key, typename Val>
 bool Database<Key, Val>::remove(Key key, int tra)
 {
-	if(!tra_set.exist(tra))
+	if(!viewer.exist(tra))
 		return nullptr;
 	if(rows.count(key) == 0)
 		return nullptr;
@@ -70,7 +70,7 @@ bool Database<Key, Val>::remove(Key key, int tra)
 template<typename Key, typename Val>
 Log<Val>* Database<Key, Val>::search(Key key, int iso, int tra, set<int>& read_view)
 {
-	if(!tra_set.exist(tra))
+	if(!viewer.exist(tra))
 		return nullptr;
 	return rows[key].search(tra, iso, read_view);
 }
@@ -80,7 +80,7 @@ Log<Val>* Database<Key, Val>::search(Key key, int iso, int tra, set<int>& read_v
 template<typename Key, typename Val>
 set<int> Database<Key, Val>::get_read_view()
 {
-	return tra_set.get_read_view();
+	return viewer.get_read_view();
 }
 
 // 数据库打印全部最新内容
