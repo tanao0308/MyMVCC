@@ -2,16 +2,13 @@
 CXX = g++
 
 # 定义编译器标志
-CXXFLAGS = -Wall -std=c++17
+CXXFLAGS = -Wall -std=c++11
 
 # 定义目标可执行文件
 TARGET = main
 
 # 定义源文件
 SRCS = main.cpp
-
-# 定义头文件
-HEADERS = mvcc.h
 
 # 定义对象文件（将 .cpp 文件的扩展名替换为 .o）
 OBJS = $(SRCS:.cpp=.o)
@@ -24,7 +21,7 @@ $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
 
 # 规则：编译 .cpp 文件为 .o 文件
-%.o: %.cpp $(HEADERS)
+%.o: %.cpp %.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # 规则：清理生成的文件

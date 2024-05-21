@@ -1,5 +1,5 @@
-#ifndef DATABASE_H
-#define DATABASE_H
+#ifndef MVCC_H
+#define MVCC_H
 
 #include<iostream>
 #include<list>
@@ -69,5 +69,7 @@ class Viewer
 public:
 	void print(Log<Val>* result);
 };
+
+#include "mvcc.cpp"
 
 #endif

@@ -1,5 +1,5 @@
 #include<iostream>
-#include "mvcc.h"
+#include "database.h"
 
 template<typename Key, typename Val>
 Database<Key, Val>& init()
@@ -30,7 +30,6 @@ void test_read_uncommitted()
     Viewer<string> vie;
 
     int tra1, tra2;
-    Log<string>* result;
 	
 	tra1 = db.start();
 	db.insert(9, "abc", tra1);
