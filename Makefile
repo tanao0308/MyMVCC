@@ -16,10 +16,10 @@ OBJECTS = $(SOURCES:.cpp=.o)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # 生成可执行文件的规则
-my_program: $(OBJECTS)
+main: $(OBJECTS)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
 # 清理目标
 clean:
-	rm -f $(OBJECTS) my_program
+	rm -f $(OBJECTS) main
 
