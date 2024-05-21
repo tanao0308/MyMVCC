@@ -90,19 +90,12 @@ public:
 			return nullptr;
 		return rows[key].search(tra, iso);
 	}
-
-};
-
-class Viewer
-{
-public:
-	
 	void print()
 	{
-		for(typename map<key, row<val> >::iterator it = rows.begin(); it != rows.end(); ++it)
+		for(typename map<Key, Row<Val> >::iterator it = rows.begin(); it != rows.end(); ++it)
 		{
-			key cur_key = it->first;
-			row<val> cur_row = it->second;
+			Key cur_key = it->first;
+			Row<Val> cur_row = it->second;
 			if(!cur_row.empty())
 			{
 				cout<<"key = "<<cur_key<<", ";
@@ -112,9 +105,23 @@ public:
 	}
 };
 
+template<typename Val>
+class Viewer
+{
+public:
+	void print(Log<Val>* result)
+	{
+		if(result == nullptr)
+			cout<<"Not Found."<<endl;
+		else
+			result->print();
+	}
+};
+
 template<typename Key, typename Val>
 void init(Database<Key, Val>& db)
 {
+	cout<<"-------Initializing Database-------"<<endl;
 	db.insert(0, "aa", 0);
 	db.insert(1, "bb", 0);
 	db.insert(2, "cc", 0);
@@ -124,9 +131,8 @@ void init(Database<Key, Val>& db)
 	db.insert(6, "gg", 0);
 	db.insert(7, "hh", 0);
 	db.insert(8, "ii", 0);
-	cout<<"--------------"<<endl;
 	db.print();
-	cout<<"--------------"<<endl;
+	cout<<"-------------Finished--------------"<<endl;
 }
 
 
@@ -134,19 +140,17 @@ int main()
 {
 	Database<int, string> db;
 	init<int, string>(db);
+
+	Viewer<string> vie;
+
 	Log<string>* result = db.search(0, 1, 0);
-	if(result == nullptr)
-		cout<<"Not Found."<<endl;
-	else
-		result->print();
+	vie.print(result);
 
 	result = db.search(3, 1, 0);
-	if(result == nullptr)
-		cout<<"Not Found."<<endl;
-	else
-		result->print();
+	vie.print(result);
 
-
+	result = db.search(10, 1, 0);
+	vie.print(result);
 
 	return 0;
 }
