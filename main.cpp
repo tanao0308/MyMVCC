@@ -2,8 +2,9 @@
 #include "mvcc.h"
 
 template<typename Key, typename Val>
-void init(Database<Key, Val>& db)
+Database<Key, Val>& init()
 {
+	Database<Key, Val>& db = *(new Database<Key, Val>());
     cout<<"-------Initializing Database-------"<<endl;
     int tra = db.start();
     db.insert(0, "aa", tra);
@@ -19,25 +20,34 @@ void init(Database<Key, Val>& db)
             exit(1);
     db.print();
     cout<<"-------------Finished--------------"<<endl;
+	return db;
+}
+
+void test_read_uncommitted()
+{
+	int iso = 0;
+	Database<int, string>& db = init<int, string>();
+    Viewer<string> vie;
+
+    int tar1, tar2;
+    Log<string>* result;
+	
+	tar1 = db.start();
+	result = db.search(0, tar1, iso);
+    vie.print(result);
+
+    result = db.search(3, tar1, iso);
+    vie.print(result);
+
+    result = db.search(10, tar1, iso);
+    vie.print(result);
+
+	delete &db;
 }
 
 
 int main()
 {
-    Database<int, string> db;
-    init<int, string>(db);
-
-    Viewer<string> vie;
-
-    int tar = db.start();
-    Log<string>* result = db.search(0, tar, 0);
-    vie.print(result);
-
-    result = db.search(3, tar, 1);
-    vie.print(result);
-
-    result = db.search(10, tar, 0);
-    vie.print(result);
-
-    return 0;
+	test_read_uncommitted();
+	return 0;
 }

@@ -2,13 +2,13 @@
 CXX = g++
 
 # 定义编译器标志
-CXXFLAGS = -Wall -std=c++11
+CXXFLAGS = -Wall -std=c++17
 
 # 定义目标可执行文件
 TARGET = main
 
 # 定义源文件
-SRCS = main.cpp mvcc.cpp
+SRCS = main.cpp
 
 # 定义头文件
 HEADERS = mvcc.h
