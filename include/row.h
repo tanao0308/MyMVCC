@@ -7,19 +7,6 @@
 #include<set>
 using namespace std;
 
-class TraSet
-{
-private:
-	int max_tra;
-	set<int> active_tra;
-public:
-	TraSet();
-	int insert();
-	bool remove(int tra);
-	bool exist(int tra);
-	set<int> get_read_view();
-};
-
 template<typename Val>
 class Log
 {
@@ -47,42 +34,6 @@ public:
 };
 
 /************************以下是上面定义的类的实现****************************/
-
-// class TraSet 维护当前活跃的事务集合
-// 构造函数，max_tra表示目前事务id已被使用了几个
-TraSet::TraSet(): max_tra(0) {}
-
-// 在当前活跃事务中插入一个新事务
-int TraSet::insert()
-{
-	max_tra++;
-	active_tra.insert(max_tra);
-	return max_tra;
-}
-
-// 移除某个已提交事务，成功返回0，失败返回1
-bool TraSet::remove(int tra)
-{
-	if(!exist(tra))
-		return 1;
-	active_tra.erase(tra);
-	return 0;
-}
-
-// 检查某个事务是否活跃
-bool TraSet::exist(int tra)
-{
-	if(active_tra.find(tra) != active_tra.end())
-		return 1;
-	return 0;
-}
-
-// 返回ReadView
-set<int> TraSet::get_read_view()
-{
-	return active_tra;
-}
-
 
 // class Log 单条数据的类
 template<typename Val>
@@ -146,7 +97,6 @@ Log<Val>* Row<Val>::search(int tra, int iso, set<int>& read_view)
 	switch(iso)
 	{
 		case 0: // 读未提交
-
 			if(empty())
 				return nullptr;
 			else
@@ -167,13 +117,6 @@ Log<Val>* Row<Val>::search(int tra, int iso, set<int>& read_view)
 					return &(*it);
 			}
 			return nullptr;
-
-			break;
-
-		case 3: // 串行化
-			break;
-
-		default:
 			break;
 	}
 	return nullptr;
