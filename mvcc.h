@@ -25,8 +25,9 @@ class Log
 private:
 	Val val;
 	int tra;
+	bool del;
 public:
-	Log(Val v, int t);
+	Log(Val v, int t, bool d=0);
 	Val get_val();
 	int get_tra();
 	void print();
@@ -37,10 +38,11 @@ class Row
 { // 每一行要存的是 用户数据(val)，事务id(tra)
 public:
 	list<Log<Val> > row;
+	bool empty();
 	bool insert(Log<Val> log);
+	bool remove(int tra);
 	Log<Val>* search(int tra, int iso, TraSet& tra_set);
 	void print();
-	bool empty();
 };
 
 template<typename Key, typename Val>
@@ -56,6 +58,7 @@ public:
 	int start();
 	bool commit(int tra);
 	bool insert(Key key, Val val, int tra);
+	bool remove(Key key, int tra);
 	Log<Val>* search(Key key, int tra, int iso);
 	void print();
 };

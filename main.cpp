@@ -25,22 +25,23 @@ Database<Key, Val>& init()
 
 void test_read_uncommitted()
 {
-	int iso = 0;
+	int iso = 1;
 	Database<int, string>& db = init<int, string>();
     Viewer<string> vie;
 
-    int tar1, tar2;
+    int tra1, tra2;
     Log<string>* result;
 	
-	tar1 = db.start();
-	result = db.search(0, tar1, iso);
-    vie.print(result);
+	tra1 = db.start();
+	db.insert(9, "abc", tra1);
+    vie.print(db.search(9, tra1, iso));
 
-    result = db.search(3, tar1, iso);
-    vie.print(result);
+	tra2 = db.start();
+	vie.print(db.search(9, tra2, iso));
 
-    result = db.search(10, tar1, iso);
-    vie.print(result);
+	db.commit(tra1);
+
+	vie.print(db.search(9, tra2, iso));
 
 	delete &db;
 }

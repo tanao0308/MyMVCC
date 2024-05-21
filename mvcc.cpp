@@ -44,7 +44,7 @@ bool TraSet::exist(int tra)
 
 // class Log 单条数据的类
 template<typename Val>
-Log<Val>::Log(Val v, int t): val(v), tra(t) {}
+Log<Val>::Log(Val v, int t, bool d): val(v), tra(t), del(d) {}
 // 得到记录的val值
 template<typename Val>
 Val Log<Val>::get_val()
@@ -64,13 +64,30 @@ void Log<Val>::print()
 	cout<<"Val = "<<val<<", Tra = "<<tra<<endl;
 }
 
-
 // class Row 一个主键对应的行的类
+// 检查当前行是否从未有过记录
+template<typename Val>
+bool Row<Val>::empty()
+{
+	if(row.size())
+		return 0;
+	return 1;
+}
 // 此行被更新为一条新记录
 template<typename Val>
 bool Row<Val>::insert(Log<Val> log)
 {
 	row.push_back(log);
+	return 1;
+}
+// 事务删除此行的记录，等价于此行插入一条被标记为删除的空记录
+template<typename Val>
+bool Row<Val>::remove(int tra)
+{
+	if(empty())
+		return 0;
+	Log<Val> log(row.back().val, tra, 1);
+	row.push_back();
 	return 1;
 }
 // 事务在此行的版本中找到符合隔离级别的某条记录
@@ -93,6 +110,8 @@ Log<Val>* Row<Val>::search(int tra, int iso, TraSet& tra_set)
 			{
 				--it;
 				if(it->get_tra() < tra && !tra_set.exist(it->get_tra()))
+					return &(*it);
+				if(it->get_tra() == tra)
 					return &(*it);
 			}
 			return nullptr;
@@ -117,14 +136,6 @@ void Row<Val>::print()
 	for(typename list<Log<Val> >::iterator it = row.begin(); it != row.end(); ++it)
 		it->print();
 	// row.back().print();
-}
-// 检查当前行是否从未有过记录
-template<typename Val>
-bool Row<Val>::empty()
-{
-	if(row.size())
-		return 0;
-	return 1;
 }
 
 // class Database 数据库类
@@ -152,10 +163,21 @@ bool Database<Key, Val>::insert(Key key, Val val, int tra)
 	Log<Val> log(val, tra);
 	return rows[key].insert(log);
 }
+// 某个事物删除一条记录
+template<typename Key, typename Val>
+bool Database<Key, Val>::remove(Key key, int tra)
+{
+	if(!tra_set.exist(tra))
+		return nullptr;
+	if(rows.count(key) == 0)
+		return nullptr;
+	return rows[key].remove(tra);
+}
 // 某个事务查找一条记录
 template<typename Key, typename Val>
 Log<Val>* Database<Key, Val>::search(Key key, int tra, int iso)
 {
+	cout<<"Transaction "<<tra<<" is searching with key = "<<key<<", iso = "<<iso<<endl;
 	if(!tra_set.exist(tra))
 		return nullptr;
 	if(rows.count(key) == 0)
