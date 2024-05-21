@@ -18,7 +18,8 @@ public:
 	bool commit(int tra);
 	bool insert(Key key, Val val, int tra);
 	bool remove(Key key, int tra);
-	Log<Val>* search(Key key, int iso, int tra);
+	Log<Val>* search(Key key, int iso, int tra, set<int>& read_view);
+	set<int> get_read_view();
 	void print();
 };
 
@@ -66,11 +67,19 @@ bool Database<Key, Val>::remove(Key key, int tra)
 
 // 某个事务查找一条记录
 template<typename Key, typename Val>
-Log<Val>* Database<Key, Val>::search(Key key, int iso, int tra)
+Log<Val>* Database<Key, Val>::search(Key key, int iso, int tra, set<int>& read_view)
 {
 	if(!tra_set.exist(tra))
 		return nullptr;
-	return rows[key].search(tra, iso, tra_set);
+	return rows[key].search(tra, iso, read_view);
+}
+
+
+// 返回ReadView
+template<typename Key, typename Val>
+set<int> Database<Key, Val>::get_read_view()
+{
+	return tra_set.get_read_view();
 }
 
 // 数据库打印全部最新内容

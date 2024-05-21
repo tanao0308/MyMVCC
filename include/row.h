@@ -17,6 +17,7 @@ public:
 	int insert();
 	bool remove(int tra);
 	bool exist(int tra);
+	set<int> get_read_view();
 };
 
 template<typename Val>
@@ -41,7 +42,7 @@ public:
 	bool empty();
 	bool insert(Log<Val> log);
 	bool remove(int tra);
-	Log<Val>* search(int tra, int iso, TraSet& tra_set);
+	Log<Val>* search(int tra, int iso, set<int>& read_view);
 	void print();
 };
 
@@ -50,6 +51,7 @@ public:
 // class TraSet 维护当前活跃的事务集合
 // 构造函数，max_tra表示目前事务id已被使用了几个
 TraSet::TraSet(): max_tra(0) {}
+
 // 在当前活跃事务中插入一个新事务
 int TraSet::insert()
 {
@@ -57,6 +59,7 @@ int TraSet::insert()
 	active_tra.insert(max_tra);
 	return max_tra;
 }
+
 // 移除某个已提交事务，成功返回0，失败返回1
 bool TraSet::remove(int tra)
 {
@@ -65,6 +68,7 @@ bool TraSet::remove(int tra)
 	active_tra.erase(tra);
 	return 0;
 }
+
 // 检查某个事务是否活跃
 bool TraSet::exist(int tra)
 {
@@ -73,27 +77,38 @@ bool TraSet::exist(int tra)
 	return 0;
 }
 
+// 返回ReadView
+set<int> TraSet::get_read_view()
+{
+	return active_tra;
+}
+
+
 // class Log 单条数据的类
 template<typename Val>
 Log<Val>::Log(Val v, int t, bool d): val(v), tra(t), del(d) {}
+
 // 得到记录的val值
 template<typename Val>
 Val Log<Val>::get_val()
 {
 	return val;
 }
+
 // 得到产生这条记录的事务
 template<typename Val>
 int Log<Val>::get_tra()
 {
 	return tra;
 }
+
 // 输出记录
 template<typename Val>
 void Log<Val>::print()
 {
 	cout<<"Val = "<<val<<", Tra = "<<tra<<endl;
 }
+
 
 // class Row 一个主键对应的行的类
 // 检查当前行是否从未有过记录
@@ -104,6 +119,7 @@ bool Row<Val>::empty()
 		return 0;
 	return 1;
 }
+
 // 此行被更新为一条新记录
 template<typename Val>
 bool Row<Val>::insert(Log<Val> log)
@@ -111,6 +127,7 @@ bool Row<Val>::insert(Log<Val> log)
 	row.push_back(log);
 	return 1;
 }
+
 // 事务删除此行的记录，等价于此行插入一条被标记为删除的空记录
 template<typename Val>
 bool Row<Val>::remove(int tra)
@@ -121,9 +138,10 @@ bool Row<Val>::remove(int tra)
 	row.push_back();
 	return 1;
 }
+
 // 事务在此行的版本中找到符合隔离级别的某条记录
 template<typename Val>
-Log<Val>* Row<Val>::search(int tra, int iso, TraSet& tra_set)
+Log<Val>* Row<Val>::search(int tra, int iso, set<int>& read_view)
 {
 	switch(iso)
 	{
@@ -135,21 +153,21 @@ Log<Val>* Row<Val>::search(int tra, int iso, TraSet& tra_set)
 				return &row.back();
 			break;
 
+		// 以下两种方法的区别在ReadView中，读已提交的readview是实时的，而可重复读的readview是事务开始时的
 		case 1: // 读已提交
-
+		case 2: // 可重复读
 			for(typename list<Log<Val> >::iterator it = row.end(); it != row.begin(); )
 			{
 				--it;
-				if(it->get_tra() < tra && !tra_set.exist(it->get_tra()))
+				// 如果此事务id < 查询的事务的id，且此事务已结束（不在ReadView内），则是答案
+				if(it->get_tra() < tra && read_view.find(it->get_tra()) == read_view.end())
 					return &(*it);
+				// 如果此事务id == 当前事务id，则是答案
 				if(it->get_tra() == tra)
 					return &(*it);
 			}
 			return nullptr;
 
-			break;
-
-		case 2: // 可重复读
 			break;
 
 		case 3: // 串行化
@@ -160,13 +178,13 @@ Log<Val>* Row<Val>::search(int tra, int iso, TraSet& tra_set)
 	}
 	return nullptr;
 }
+
 // 打印一行的所有版本（从老到新）
 template<typename Val>
 void Row<Val>::print()
 {
 	for(typename list<Log<Val> >::iterator it = row.begin(); it != row.end(); ++it)
 		it->print();
-	// row.back().print();
 }
 
 #endif

@@ -23,22 +23,49 @@ Database<Key, Val>& init()
 	return db;
 }
 
-void test_read_uncommitted()
+void test_read_committed()
 {
 	Database<int, string>& db = init<int, string>();
 
-	Transaction<int, string> tra1(db, 1);
-	Transaction<int, string> tra2(db, 1);
+	Transaction<int, string> tra1(db);
+	Transaction<int, string> tra2(db);
 	
-	tra1.start();
+	tra1.start(1);
 	tra1.insert(9, "abc");
 
-	tra2.start();
-	tra2.print(tra2.search(9));
+	tra2.start(1);
+	tra2.search(9, 1);
 
 	tra1.commit();
 
-	tra2.print(tra2.search(9));
+	tra2.search(9, 1);
+
+	tra1.start(1);
+	tra1.search(9,1);
+	tra1.commit();
+
+	delete &db;
+}
+
+void test_repeatable_read()
+{
+	Database<int, string>& db = init<int, string>();
+
+	Transaction<int, string> tra1(db), tra2(db), tra3(db);
+	
+	tra1.start(1);
+	tra1.insert(9, "abc");
+
+	tra2.start(1);
+	tra2.search(9, 1);
+
+	tra1.commit();
+
+	tra3.start(2);
+	tra3.search(9, 1);
+	
+	tra2.commit();
+	tra3.commit();
 
 	delete &db;
 }
@@ -46,6 +73,7 @@ void test_read_uncommitted()
 
 int main()
 {
-	test_read_uncommitted();
+//	test_read_committed();
+	test_repeatable_read();
 	return 0;
 }
