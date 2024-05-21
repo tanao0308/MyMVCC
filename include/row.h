@@ -1,17 +1,51 @@
+#ifndef ROW_H
+#define ROW_H
+
 #include<iostream>
 #include<list>
 #include<map>
 #include<set>
-#include "database.h"
 using namespace std;
 
-/*
-如何用单线程模拟多线程
-我们知道在指令的意义下sql实际上是顺次执行的
-于是设置每次输入的指令为：事务id + 操作
+class TraSet
+{
+private:
+	int max_tra;
+	set<int> active_tra;
+public:
+	TraSet();
+	int insert();
+	bool remove(int tra);
+	bool exist(int tra);
+};
 
-为了简化，将数据库设置为<int,string>的主键+值的结构
-*/
+template<typename Val>
+class Log
+{
+private:
+	Val val;
+	int tra;
+	bool del;
+public:
+	Log(Val v, int t, bool d=0);
+	Val get_val();
+	int get_tra();
+	void print();
+};
+
+template<typename Val>
+class Row
+{ // 每一行要存的是 用户数据(val)，事务id(tra)
+public:
+	list<Log<Val> > row;
+	bool empty();
+	bool insert(Log<Val> log);
+	bool remove(int tra);
+	Log<Val>* search(int tra, int iso, TraSet& tra_set);
+	void print();
+};
+
+/************************以下是上面定义的类的实现****************************/
 
 // class TraSet 维护当前活跃的事务集合
 // 构造函数，max_tra表示目前事务id已被使用了几个
@@ -135,76 +169,4 @@ void Row<Val>::print()
 	// row.back().print();
 }
 
-// class Database 数据库类
-template<typename Key, typename Val>
-Database<Key, Val>::Database() {}
-// 向数据库申请一个事务
-template<typename Key, typename Val>
-int Database<Key, Val>::start()
-{
-	int tra = tra_set.insert();
-	return tra;
-}
-// 提交一个事务
-template<typename Key, typename Val>
-bool Database<Key, Val>::commit(int tra)
-{
-	return tra_set.remove(tra);
-}
-// 某个事务插入一条记录
-template<typename Key, typename Val>
-bool Database<Key, Val>::insert(Key key, Val val, int tra)
-{
-	if(!tra_set.exist(tra))
-		return 1; // 失败返回0
-	Log<Val> log(val, tra);
-	return rows[key].insert(log);
-}
-// 某个事物删除一条记录
-template<typename Key, typename Val>
-bool Database<Key, Val>::remove(Key key, int tra)
-{
-	if(!tra_set.exist(tra))
-		return nullptr;
-	if(rows.count(key) == 0)
-		return nullptr;
-	return rows[key].remove(tra);
-}
-// 某个事务查找一条记录
-template<typename Key, typename Val>
-Log<Val>* Database<Key, Val>::search(Key key, int tra, int iso)
-{
-	cout<<"Transaction "<<tra<<" is searching with key = "<<key<<", iso = "<<iso<<endl;
-	if(!tra_set.exist(tra))
-		return nullptr;
-	if(rows.count(key) == 0)
-		return nullptr;
-	return rows[key].search(tra, iso, tra_set);
-}
-// 数据库打印全部最新内容
-template<typename Key, typename Val>
-void Database<Key, Val>::print()
-{
-	for(typename map<Key, Row<Val> >::iterator it = rows.begin(); it != rows.end(); ++it)
-	{
-		Key cur_key = it->first;
-		Row<Val> cur_row = it->second;
-		if(!cur_row.empty())
-		{
-			cout<<"key = "<<cur_key<<", ";
-			cur_row.print();
-		}
-	}
-}
-
-// class Viewer 可视化函数类
-// 输出当前Log内容
-template<typename Val>
-void Viewer<Val>::print(Log<Val>* result)
-{
-	if(result == nullptr)
-		cout<<"Not Found."<<endl;
-	else
-		result->print();
-}
-
+#endif
