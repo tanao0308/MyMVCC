@@ -1,5 +1,5 @@
-#ifndef MVCC_TPP
-#define MVCC_TPP
+#ifndef MVCC_CPP
+#define MVCC_CPP
 
 #include<iostream>
 #include<list>
