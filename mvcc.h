@@ -67,5 +67,6 @@ public:
 	void print(Log<Val>* result);
 };
 
+#include "mvcc.cpp"
 
 #endif
