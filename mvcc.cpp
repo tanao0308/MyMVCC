@@ -1,6 +1,8 @@
 #include<iostream>
 #include<list>
 #include<map>
+#include<set>
+#include "mvcc.h"
 using namespace std;
 
 /*
@@ -19,6 +21,14 @@ private:
 	int tra;
 public:
 	Log(Val v, int t): val(v), tra(t) {}
+	Val get_val()
+	{
+		return val;
+	}
+	int get_tra()
+	{
+		return tra;
+	}
 	void print()
 	{
 		cout<<"Val = "<<val<<", Tra = "<<tra<<endl;
@@ -35,22 +45,36 @@ public:
 		row.push_back(log);
 		return 1;
 	}
-	Log<Val>* search(int tra, int iso)
+	Log<Val>* search(int tra, int iso, TraSet& tra_set)
 	{
 		switch(iso)
 		{
 			case 0: // 读未提交
+
 				if(empty())
 					return nullptr;
 				else
 					return &row.back();
 				break;
+
 			case 1: // 读已提交
+
+				for(typename list<Log<Val> >::iterator it = row.end(); it != row.begin(); )
+				{
+					--it;
+					if(it->get_tra() < tra && tra_set.exist(it->get_tra()))
+						return it;
+				}
+				return nullptr;
+
 				break;
+
 			case 2: // 可重复读
 				break;
+
 			case 3: // 串行化
 				break;
+
 			default:
 				break;
 		}
@@ -70,25 +94,67 @@ public:
 	}
 };
 
+class TraSet
+{
+private:
+	int max_tra;
+	set<int> active_tra;
+public:
+	TraSet(): max_tra(0) {}
+	void insert_tra(int tra)
+	{
+		active_tra.insert(tra);
+	}
+	bool remove_tra(int tra)
+	{
+		if(!exist_tra(tra))
+			return 1;
+		active_tra.erase(tra);
+		return 0;
+	}
+	bool exist_tra(int tra)
+	{
+		if(active_tra.find(tra) != active_tra.end())
+			return 1;
+		return 0;
+	}
+};
+
 template<typename Key, typename Val>
 class Database
 {
 private:
 	map<Key, Row<Val> > rows;
+	TraSet tra_set;
 
 public:
-	Database() {}
+	Database(): max_tra(0) {}
 
+	int start()
+	{
+		tra_set.insert(++max_tra);
+		return max_tra;
+	}
+	bool commit(int tra)
+	{
+		if(tra_set.remove(tra))
+			return 0;
+		return 1;
+	}
 	bool insert(Key key, Val val, int tra)
 	{
+		if(!tra_set.exist(tra))
+			return 1; // 失败返回0
 		Log<Val> log(val, tra);
 		return rows[key].insert(log);
 	}
 	Log<Val>* search(Key key, int tra, int iso)
 	{
+		if(!exist_tra(tra))
+			return nullptr;
 		if(rows.count(key) == 0)
 			return nullptr;
-		return rows[key].search(tra, iso);
+		return rows[key].search(tra, iso, tra_set);
 	}
 	void print()
 	{
