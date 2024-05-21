@@ -7,6 +7,18 @@
 #include<set>
 using namespace std;
 
+class TraSet
+{
+private:
+	int max_tra;
+	set<int> active_tra;
+public:
+	TraSet();
+	int insert();
+	bool remove(int tra);
+	bool exist(int tra);
+};
+
 template<typename Val>
 class Log
 {
@@ -14,7 +26,7 @@ private:
 	Val val;
 	int tra;
 public:
-	Log(Val v, int t): val(v), tra(t) {}
+	Log(Val v, int t);
 	Val get_val();
 	int get_tra();
 	void print();
@@ -31,18 +43,6 @@ public:
 	bool empty();
 };
 
-class TraSet
-{
-private:
-	int max_tra;
-	set<int> active_tra;
-public:
-	TraSet(): max_tra(0) {}
-	void insert_tra(int tra);
-	bool remove_tra(int tra);
-	bool exist_tra(int tra);
-};
-
 template<typename Key, typename Val>
 class Database
 {
@@ -51,7 +51,7 @@ private:
 	TraSet tra_set;
 
 public:
-	Database(): max_tra(0) {}
+	Database();
 
 	int start();
 	bool commit(int tra);
