@@ -2,6 +2,7 @@
 #define DATABASE_H
 
 #include "row.h"
+#include "read_view.h"
 using namespace std;
 
 template<typename Key, typename Val>
@@ -9,7 +10,7 @@ class Database
 {
 private:
 	map<Key, Row<Val> > rows;
-	TraSet tra_set;
+	ReadView tra_set;
 
 public:
 	Database();
