@@ -23,7 +23,7 @@ int TraSet::insert()
 	active_tra.insert(max_tra);
 	return max_tra;
 }
-// 移除某个已提交事务
+// 移除某个已提交事务，成功返回0，失败返回1
 bool TraSet::remove(int tra)
 {
 	if(!exist(tra))
@@ -138,9 +138,7 @@ int Database<Key, Val>::start()
 template<typename Key, typename Val>
 bool Database<Key, Val>::commit(int tra)
 {
-	if(tra_set.remove(tra))
-		return 0;
-	return 1;
+	return tra_set.remove(tra);
 }
 // 某个事务插入一条记录
 template<typename Key, typename Val>
@@ -193,15 +191,18 @@ template<typename Key, typename Val>
 void init(Database<Key, Val>& db)
 {
 	cout<<"-------Initializing Database-------"<<endl;
-	db.insert(0, "aa", 0);
-	db.insert(1, "bb", 0);
-	db.insert(2, "cc", 0);
-	db.insert(3, "dd", 0);
-	db.insert(4, "ee", 0);
-	db.insert(5, "ff", 0);
-	db.insert(6, "gg", 0);
-	db.insert(7, "hh", 0);
-	db.insert(8, "ii", 0);
+	int tra = db.start();
+	db.insert(0, "aa", tra);
+	db.insert(1, "bb", tra);
+	db.insert(2, "cc", tra);
+	db.insert(3, "dd", tra);
+	db.insert(4, "ee", tra);
+	db.insert(5, "ff", tra);
+	db.insert(6, "gg", tra);
+	db.insert(7, "hh", tra);
+	db.insert(8, "ii", tra);
+	if(db.commit(tra))
+		exit(1);
 	db.print();
 	cout<<"-------------Finished--------------"<<endl;
 }
@@ -214,13 +215,14 @@ int main()
 
 	Viewer<string> vie;
 
-	Log<string>* result = db.search(0, 1, 0);
+	int tar = db.start();	
+	Log<string>* result = db.search(0, tar, 0);
 	vie.print(result);
 
-	result = db.search(3, 1, 0);
+	result = db.search(3, tar, 1);
 	vie.print(result);
 
-	result = db.search(10, 1, 0);
+	result = db.search(10, tar, 0);
 	vie.print(result);
 
 	return 0;
